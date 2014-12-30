@@ -113,61 +113,22 @@ namespace FreecellSolverApp
 		//Balanced: 12851 (30min)
 		public static void Main(string[] args)
 		{
-			ConcurrentQueue<SolverCommand> commandQueue = new ConcurrentQueue<SolverCommand>();
+			ConsoleWriter consoleWriter = new ConsoleWriter();
 
-			Task solveTask = new Task(RunSolverThread, commandQueue);
-			solveTask.Start();
+			int freeCellGameNr = 10;
+			GameState gameState = GameStateGenerator.GenerateGameState(freeCellGameNr);
+			Solver solver = new Solver(consoleWriter);
 
-			Console.WriteLine("Press R for the current results, Q to quit...");		
-			SolverCommand command = null;
-			do
-			{
-				command = GetSolverCommandForKey(Console.ReadKey(true));
-				if (command != null)
-				{
-					commandQueue.Enqueue(command);
-				}
-			} while (command == null || command.Name != SolverCommandName.Quit);
+			consoleWriter.WriteLine("Starting to solve FreeCell game number {0}...", freeCellGameNr);
 
-			solveTask.Wait();
+			Stopwatch stopwatch = Stopwatch.StartNew();
+			solver.Solve(gameState);
+			stopwatch.Stop();
+
+			Console.WriteLine("Found solution. Elapsed time: {0}m {1}s.", Math.Floor(stopwatch.Elapsed.TotalMinutes), stopwatch.Elapsed.Seconds);
 
 			Console.WriteLine("Press enter to exit...");
 			Console.ReadLine();
-		}
-
-		private static void RunSolverThread(object commandQueueObj)
-		{
-			ConcurrentQueue<SolverCommand> commandQueue = (ConcurrentQueue<SolverCommand>)commandQueueObj;
-			ConsoleWriter consoleWriter = new ConsoleWriter();
-
-			//for (int freeCellGameNr = 1; freeCellGameNr < 10; freeCellGameNr++)
-			//{
-				int freeCellGameNr = 5743;
-				GameState gameState = GameStateGenerator.GenerateGameState(freeCellGameNr);
-				Solver solver = new Solver(commandQueue, consoleWriter);
-
-				consoleWriter.WriteLine("Starting to solve FreeCell game number {0}...", freeCellGameNr);
-
-				Stopwatch stopwatch = Stopwatch.StartNew();
-				solver.Solve(gameState);
-				stopwatch.Stop();
-
-				Console.WriteLine("Found solution. Elapsed time: {0}m {1}s.", Math.Floor(stopwatch.Elapsed.TotalMinutes), stopwatch.Elapsed.Seconds);
-			//}
-		}
-
-		private static SolverCommand GetSolverCommandForKey(ConsoleKeyInfo keyInfo)
-		{
-			char key = (keyInfo != null) ? keyInfo.KeyChar : ' ';
-			switch (Char.ToLowerInvariant(key))
-			{
-				case 'r': 
-					return new SolverCommand(SolverCommandName.ShowResult);
-				case 'q':
-					return new SolverCommand(SolverCommandName.Quit);
-			}
-
-			return null;
 		}
 
 		//[ 41] Move the 2 cards "s8, h9" from cascade 7 to cascade 4. - 8 Stap

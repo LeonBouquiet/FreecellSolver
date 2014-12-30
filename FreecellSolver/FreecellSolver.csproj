@@ -87,7 +87,6 @@
     <Compile Include="PriorityQueue.cs" />
     <Compile Include="SolutionStep.cs" />
     <Compile Include="Solver.cs" />
-    <Compile Include="SolverCommand.cs" />
     <Compile Include="SolverException.cs" />
     <Compile Include="GameState.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

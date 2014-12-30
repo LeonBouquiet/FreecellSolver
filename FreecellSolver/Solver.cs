@@ -10,13 +10,10 @@ namespace FreecellSolver
 {
 	public class Solver
 	{
-		private ConcurrentQueue<SolverCommand> _commandQueue;
-
 		private IConsoleWriter _consoleWriter;
 
-		public Solver(ConcurrentQueue<SolverCommand> commandQueue, IConsoleWriter consoleWriter)
+		public Solver(IConsoleWriter consoleWriter)
 		{
-			_commandQueue = commandQueue;
 			_consoleWriter = consoleWriter;
 		}
 
@@ -51,20 +48,6 @@ namespace FreecellSolver
 				{
 					_consoleWriter.WriteLine("No more GameStates available in the queue.");
 					return currentOptimalSolution;
-				}
-
-				SolverCommand cmd;
-				if(_commandQueue.TryDequeue(out cmd))
-				{
-					if (cmd.Name == SolverCommandName.ShowResult)
-					{
-						WriteSolution(initialState, currentOptimalSolution);
-					}
-					if (cmd.Name == SolverCommandName.Quit)
-					{
-						_consoleWriter.WriteLine("Quit requested...");
-						return currentOptimalSolution;
-					}
 				}
 
 				GameState gameState = queue.Dequeue();
