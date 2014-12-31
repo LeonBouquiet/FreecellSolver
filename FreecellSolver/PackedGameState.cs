@@ -17,6 +17,8 @@ namespace FreecellSolver
 		private const byte Delimiter = 0xFF;
 
 		private int _level;
+		private int _priority;
+		private int _minimumSolutionCost;
 		private byte[] _bytes;
 		private int _hash;
 
@@ -25,6 +27,16 @@ namespace FreecellSolver
 		public int Level
 		{
 			get { return _level; }
+		}
+
+		public int Priority
+		{
+			get { return _priority; }
+		}
+
+		public int MinimumSolutionCost
+		{
+			get { return _minimumSolutionCost; }
 		}
 
 		public int ByteCount
@@ -47,9 +59,11 @@ namespace FreecellSolver
 			}
 		}
 
-		private PackedGameState(int level, byte[] bytes, int hash)
+		private PackedGameState(int level, int priority, int minimumSolutionCost, byte[] bytes, int hash)
 		{
 			_level = level;
+			_priority = priority;
+			_minimumSolutionCost = minimumSolutionCost;
 			_bytes = bytes;
 			_hash = hash;
 		}
@@ -116,7 +130,7 @@ namespace FreecellSolver
 					(hashBytes[block * 4 + 2] << 16) ^ (hashBytes[block * 4 + 3] << 23);
 			}
 
-			return new PackedGameState(gameState.Level, gameStateBytes, hash);
+			return new PackedGameState(gameState.Level, gameState.Priority, gameState.MinimumSolutionCost, gameStateBytes, hash);
 		}
 
 
@@ -149,7 +163,7 @@ namespace FreecellSolver
 				}
 			}
 
-			GameState gameState = new GameState(swapCells, foundations, cascades.ToArray());
+			GameState gameState = new GameState(swapCells, foundations, cascades.ToArray(), _level);
 			return gameState;
 		}
 	}

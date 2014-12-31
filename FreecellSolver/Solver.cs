@@ -30,7 +30,7 @@ namespace FreecellSolver
 
 		public List<PackedGameState> RunPrioritized(GameState initialState)
 		{
-			PriorityQueue<GameState> queue = new PriorityQueue<GameState>((left, right) => (left.Priority - right.Priority));
+			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
 			PrintGameState(initialState);
 
 			List<PackedGameState> currentOptimalSolution = null;
@@ -39,8 +39,8 @@ namespace FreecellSolver
 			long improveCount = 0;
 
 			initialState = (GameState)initialState.Clone();
-			initialState.NormalizeAndPack(null);
-			queue.Enqueue(initialState);
+			PackedGameState initialPackedState = initialState.NormalizeAndPack(null);
+			queue.Enqueue(initialPackedState);
 
 			int loopLimit = 9950000;
 			for (ProcessCount = 0; ProcessCount < loopLimit; ProcessCount++)
@@ -51,7 +51,8 @@ namespace FreecellSolver
 					return currentOptimalSolution;
 				}
 
-				GameState gameState = queue.Dequeue();
+				PackedGameState packedState = queue.Dequeue();
+				GameState gameState = packedState.Unpack();
 
 				Move[] moves = MoveGenerator.Generate(gameState);
 				foreach (Move move in moves)
@@ -60,13 +61,13 @@ namespace FreecellSolver
 
 					//If we've already found a solution, only explore this one if it has a chance 
 					//of being better, otherwise disregard it.
-					if (ShouldBePruned(childState, maxLevel))
+					if (childState.Level >= maxLevel || (childState.Level + childState.MinimumSolutionCost >= maxLevel))
 					{
 						pruneCount++;
 						continue;
 					}
 
-					PackedGameState packedChild = childState.NormalizeAndPack(gameState.Packed);
+					PackedGameState packedChild = childState.NormalizeAndPack(packedState);
 					if (childState.IsSolved)
 					{
 						currentOptimalSolution = packedChild.PathToRoot;
@@ -86,7 +87,7 @@ namespace FreecellSolver
 							improveCount++;
 
 						_knownGameStates[packedChild] = packedChild;
-						queue.Enqueue(childState);
+						queue.Enqueue(packedChild);
 					}
 				}
 
@@ -97,12 +98,12 @@ namespace FreecellSolver
 			return currentOptimalSolution;
 		}
 
-		private bool ShouldBePruned(GameState gameState, int maxLevel)
+		private bool ShouldBePruned(PackedGameState packedState, int maxLevel)
 		{
-			if (gameState.Level >= maxLevel)
+			if (packedState.Level >= maxLevel)
 				return true;
 
-			if (gameState.Level + gameState.MinimumSolutionCost >= maxLevel)
+			if (packedState.Level + packedState.MinimumSolutionCost >= maxLevel)
 				return true;
 
 			return false;

@@ -17,8 +17,6 @@ namespace FreecellSolver
 		private int _level;
 		private int _priority;
 
-		public PackedGameState Packed { get; set; }
-
 		/// <summary>
 		/// Gets the number of empty <see cref="Cascade"/>s in the GameState.
 		/// </summary>
@@ -186,11 +184,13 @@ namespace FreecellSolver
 		/// Diamond and Club suits, respectively. Its lenght is always 4; can contain the None card
 		/// if the foundation is emtpy.</param>
 		/// <param name="cascades">The 8 Cascades for this game state.</param>
-		public GameState(List<int> swapCells, int[] foundations, Cascade[] cascades)
+		/// <param name="level">The level.</param>
+		public GameState(List<int> swapCells, int[] foundations, Cascade[] cascades, int level)
 		{
 			_swapCells = swapCells;
 			_foundations = new List<int>(foundations);
 			_cascades = new List<Cascade>(cascades);
+			_level = level;
 
 			PerformSafeFoundationMoves(null);
 		}
@@ -243,10 +243,9 @@ namespace FreecellSolver
 
 			//Note that this does not require a Recalculate, since none of the precalculated values 
 			//are affected by these operations.
-
-			this.Packed = PackedGameState.Pack(this);
-			this.Packed.ParentState = parent;
-			return this.Packed;
+			PackedGameState packed = PackedGameState.Pack(this);
+			packed.ParentState = parent;
+			return packed;
 		}
 
 		/// <summary>
@@ -509,7 +508,7 @@ namespace FreecellSolver
 			}
 
 			//Construct the GameState from the parsed data. 
-			GameState gamestate = new GameState(swapCells, foundations, cascades);
+			GameState gamestate = new GameState(swapCells, foundations, cascades, 0);
 
 			//At this point, we haven't verified if cards are missing or if cards are duplicated.
 			//Also, it's possible that the cascades contain None cards, or that the foundations
