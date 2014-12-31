@@ -12,6 +12,8 @@ namespace FreecellSolver
 	{
 		private IConsoleWriter _consoleWriter;
 
+		public int ProcessCount { get; private set; }
+
 		public Solver(IConsoleWriter consoleWriter)
 		{
 			_consoleWriter = consoleWriter;
@@ -35,14 +37,13 @@ namespace FreecellSolver
 			int maxLevel = initialState.MinimumSolutionCost + 11;
 			long pruneCount = 0;
 			long improveCount = 0;
-			List<int> levelInBlock = new List<int>();
 
 			initialState = (GameState)initialState.Clone();
 			initialState.NormalizeAndPack(null);
 			queue.Enqueue(initialState);
 
 			int loopLimit = 9950000;
-			for (int index = 0; index < loopLimit; index++)
+			for (ProcessCount = 0; ProcessCount < loopLimit; ProcessCount++)
 			{
 				if (queue.Count == 0)
 				{
@@ -77,8 +78,6 @@ namespace FreecellSolver
 						_consoleWriter.WriteLine("Removed {0} queue entries.", removeCount);
 					}
 
-					levelInBlock.Add(childState.Level);
-
 					//If we didn't queue this child state before, queue it now.
 					PackedGameState existing = _knownGameStates.TryGetValue(packedChild);
 					if (existing == null || existing.Level > packedChild.Level)
@@ -91,18 +90,8 @@ namespace FreecellSolver
 					}
 				}
 
-				if (index % 10000 == 0)
-				{
-					levelInBlock.Sort();
-
-					int min = levelInBlock.First();
-					int q1 = levelInBlock[levelInBlock.Count / 4];
-					int q3 = levelInBlock[3 * levelInBlock.Count / 4];
-					int max = levelInBlock.Last();
-					_consoleWriter.WriteLine("{0,8} processed, {1,8} queued, {2} pruned, {3} improved. Level [Min: {4}, Q1: {5}, Q3: {6}, Max: {7}]", index, queue.Count, pruneCount, improveCount, min, q1, q3, max);
-
-					levelInBlock.Clear();
-				}
+				if (ProcessCount % 10000 == 0)
+					_consoleWriter.WriteLine("{0,8} processed, {1,8} queued, {2} pruned, {3} improved.", ProcessCount, queue.Count, pruneCount, improveCount);
 			}
 
 			return currentOptimalSolution;
@@ -115,19 +104,6 @@ namespace FreecellSolver
 
 			if (gameState.Level + gameState.MinimumSolutionCost >= maxLevel)
 				return true;
-
-			//Werkt niet:
-
-			//if(maxLevel < Int32.MaxValue)
-			//{
-			//	int fiftyPercentLevel = (int)Math.Ceiling(maxLevel * 0.5d);
-			//	if (gameState.Level >= fiftyPercentLevel && gameState.Progress < 17)
-			//		return true;
-
-			//	int eightyPercentLevel = (int)Math.Ceiling(maxLevel * 0.8d);
-			//	if (gameState.Level >= eightyPercentLevel && gameState.Progress < 26)
-			//		return true;
-			//}
 
 			return false;
 		}

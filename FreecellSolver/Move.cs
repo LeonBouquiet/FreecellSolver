@@ -5,6 +5,13 @@ using System.Text;
 
 namespace FreecellSolver
 {
+	/// <summary>
+	/// Describes transferring a Card from its <see cref="Source"/> location to its <see cref="Target"/> 
+	/// location. 
+	/// Prior to this transfer, 0 or more cards may be "popped" (= removed from the top) of the Source 
+	/// or Target cascade - this is considered part of the Move and counts towards the 
+	/// <see cref="LevelIncrement"/>.
+	/// </summary>
 	public class Move
 	{
 		private Location _source;
@@ -32,6 +39,9 @@ namespace FreecellSolver
 			get { return 1 + _source.PopCount + _target.PopCount; }
 		}
 
+		/// <summary>
+		/// Constructor.
+		/// </summary>
 		public Move(Location source, Location target)
 		{
 			_source = source;
@@ -39,10 +49,10 @@ namespace FreecellSolver
 		}
 
 		/// <summary>
-		/// 
+		/// Debugging support: returns a string description of this Move.
 		/// </summary>
-		/// <returns></returns>
 		/// <remarks>
+		/// E.g.:
 		/// [PopSrc:0, PopTgt:1] Move 1 card from Cascade 1 to Cascade 7.
 		/// [PopSrc:0, PopTgt:0] Move 1 card from Cascade 1 to Foundation.
 		/// [PopSrc:0, PopTgt:0] Move 1 card from Cascade 1 to SwapCell.

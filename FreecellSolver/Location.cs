@@ -45,8 +45,7 @@ namespace FreecellSolver
 		}
 
 		/// <summary>
-		/// The number of cards to remove from the top of the cascade before 
-		/// moving the sequence.
+		/// The number of cards to remove from the top of the cascade before moving the sequence.
 		/// </summary>
 		public int PopCount
 		{

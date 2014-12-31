@@ -16,7 +16,6 @@ namespace FreecellSolver
 		private int _emptyCascadeCount;
 		private int _level;
 		private int _priority;
-		private int _progress;
 
 		public PackedGameState Packed { get; set; }
 
@@ -121,15 +120,6 @@ namespace FreecellSolver
 		public int Priority
 		{
 			get { return _priority; }
-		}
-
-		/// <summary>
-		/// Gets how much progress has been made - this is the sum of <see cref="Consecutiveness"/> 
-		/// and <see cref="Completeness"/>.
-		/// </summary>
-		public int Progress
-		{
-			get { return _progress; }
 		}
 
 		/// <summary>
@@ -240,11 +230,7 @@ namespace FreecellSolver
 			//  Completeness	[0, 52]		10 * Completeness    = [0, 520]
 			//  Availability	[0, 12]		20 * Availability    = [0, 240]
 			//  Level			[0, ->]		-10 * Level
-
-			int consecutiveness = this.Consecutiveness;
-			int completeness = this.Completeness;
-			_priority = 480 + (8 * Level) - (6 * consecutiveness + 10 * completeness + 20 * Availability);
-			_progress = consecutiveness + completeness;
+			_priority = 480 + (8 * Level) - (6 * Consecutiveness + 10 * Completeness + 20 * Availability);
 		}
 
 		public PackedGameState NormalizeAndPack(PackedGameState parent = null)
@@ -255,8 +241,8 @@ namespace FreecellSolver
 			_swapCells.Sort();
 			_cascades.Sort();
 
-			//Note that this does require a Recalculate, since none of the precalculated values are 
-			//affected by these operations.
+			//Note that this does not require a Recalculate, since none of the precalculated values 
+			//are affected by these operations.
 
 			this.Packed = PackedGameState.Pack(this);
 			this.Packed.ParentState = parent;
