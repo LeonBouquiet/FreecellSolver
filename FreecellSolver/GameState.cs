@@ -212,7 +212,7 @@ namespace FreecellSolver
 			Move safeFoundationMove = MoveGenerator.GetSafeFoundationMove(this);
 			while (safeFoundationMove != null)
 			{
-				this.ApplyMove(safeFoundationMove, moveLogger, false);
+				ApplyMove(safeFoundationMove, moveLogger, false);
 				safeFoundationMove = MoveGenerator.GetSafeFoundationMove(this);
 			}
 
@@ -286,10 +286,10 @@ namespace FreecellSolver
 			if (move.Source.Area == Area.Cascade && move.Target.Area == Area.Cascade)
 			{
 				if(moveLogger != null)
-					moveLogger.LogMoveToCascade(move.Source.Index, _cascades[move.Source.Index], move.Source.SequenceLength, move.Target.Index);
+					moveLogger.LogMoveToCascade(move.Source.Index, _cascades[move.Source.Index], move.SequenceLength, move.Target.Index);
 
 				//Remove the sequence from the source Cascade and append it to the target.
-				int[] cards = _cascades[move.Source.Index].RemoveSequence(move.Source.SequenceLength);
+				int[] cards = _cascades[move.Source.Index].RemoveSequence(move.SequenceLength);
 				_cascades[move.Target.Index].AppendSequence(cards);
 			}
 			else

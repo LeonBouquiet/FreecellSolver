@@ -16,6 +16,7 @@ namespace FreecellSolver
 	{
 		private Location _source;
 		private Location _target;
+		private int _sequenceLength;
 
 		public Location Source
 		{
@@ -27,6 +28,16 @@ namespace FreecellSolver
 		{
 			get { return _target; }
 			set { _target = value; }
+		}
+
+		/// <summary>
+		/// The number of cards that are transferred from Source to Target; Can only be > 1 when both 
+		/// the Source and Target are Cascades.
+		/// </summary>
+		public int SequenceLength
+		{
+			get { return _sequenceLength; }
+			set { _sequenceLength = value; }
 		}
 
 		/// <summary>
@@ -43,9 +54,18 @@ namespace FreecellSolver
 		/// Constructor.
 		/// </summary>
 		public Move(Location source, Location target)
+			: this(source, target, 1)
+		{
+		}
+
+		/// <summary>
+		/// Constructor.
+		/// </summary>
+		public Move(Location source, Location target, int sequenceLength)
 		{
 			_source = source;
 			_target = target;
+			_sequenceLength = sequenceLength;
 		}
 
 		/// <summary>
@@ -64,7 +84,7 @@ namespace FreecellSolver
 			desc = desc.Replace("<pops>", string.Format("PopSrc:{0}, PopTgt:{1}", _source.PopCount, _target.PopCount));
 
 			if (_source.Area == Area.Cascade)
-				desc = desc.Replace("<card>", string.Format("{0} card{1}", _source.SequenceLength, (_source.SequenceLength > 1) ? "s" : ""));
+				desc = desc.Replace("<card>", string.Format("{0} card{1}", _sequenceLength, (_sequenceLength > 1) ? "s" : ""));
 			else
 				desc = desc.Replace("<card>", string.Format("card {0}", CardUtil.GetCardString(_source.Card)));
 

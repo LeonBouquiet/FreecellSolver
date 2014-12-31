@@ -63,7 +63,7 @@ namespace FreecellSolver
 						if (popCount == cascade.Cards.Count || CardUtil.CanBuildCascade(cascade.Cards[popCount], card))
 						{
 							Location sourceLocation = new Location(Area.SwapCell, card);
-							Location targetLocation = new Location(Area.Cascade, index, popCount, 1);
+							Location targetLocation = new Location(Area.Cascade, index, popCount);
 							_moves.Add(new Move(sourceLocation, targetLocation));
 						}
 					}
@@ -92,7 +92,7 @@ namespace FreecellSolver
 
 					if (CardUtil.CanBuildFoundation(foundationCard, card))
 					{
-						Location sourceLocation = new Location(Area.Cascade, index, popCount, 1);
+						Location sourceLocation = new Location(Area.Cascade, index, popCount);
 						Location targetLocation = new Location(Area.Foundation);
 						_moves.Add(new Move(sourceLocation, targetLocation));
 					}
@@ -168,9 +168,9 @@ namespace FreecellSolver
 								{
 									if (CardUtil.CanBuildCascade(topCard, source.Cards[sourcePopCount + length - 1]))
 									{
-										Location sourceLocation = new Location(Area.Cascade, sourceIndex, sourcePopCount, length);
+										Location sourceLocation = new Location(Area.Cascade, sourceIndex, sourcePopCount);
 										Location targetLocation = new Location(Area.Cascade, targetIndex, targetPopCount);
-										_moves.Add(new Move(sourceLocation, targetLocation));
+										_moves.Add(new Move(sourceLocation, targetLocation, length));
 										break;
 									}
 								}
@@ -180,9 +180,9 @@ namespace FreecellSolver
 								//The target Cascade is empty, so every length is a valid move.
 								for (int length = maxCardsToMove; length > 0; length--)
 								{
-									Location sourceLocation = new Location(Area.Cascade, sourceIndex, sourcePopCount, length);
+									Location sourceLocation = new Location(Area.Cascade, sourceIndex, sourcePopCount);
 									Location targetLocation = new Location(Area.Cascade, targetIndex, targetPopCount);
-									_moves.Add(new Move(sourceLocation, targetLocation));
+									_moves.Add(new Move(sourceLocation, targetLocation, length));
 								}
 							}
 						}

@@ -17,7 +17,6 @@ namespace FreecellSolver
 		private int _card;
 		private int _index;
 		private int _popCount;
-		private int _sequenceLength;
 
 		public Area Area
 		{
@@ -53,22 +52,12 @@ namespace FreecellSolver
 			set { _popCount = value; }
 		}
 
-		/// <summary>
-		/// This is the maximum number of cards that can be moved from one location.
-		/// </summary>
-		public int SequenceLength
-		{
-			get { return _sequenceLength; }
-			set { _sequenceLength = value; }
-		}
-
 		public Location(Area area)
 		{
 			_area = area;
 			_card = -1;
 			_index = Int32.MaxValue;
 			_popCount = 0;
-			_sequenceLength = 1;
 		}
 
 		public Location(Area area, int card)
@@ -77,7 +66,6 @@ namespace FreecellSolver
 			_card = card;
 			_index = Int32.MaxValue;
 			_popCount = 0;
-			_sequenceLength = 1;
 		}
 
 		public Location(Area area, int index, int popCount)
@@ -86,16 +74,6 @@ namespace FreecellSolver
 			_card = Int32.MaxValue;
 			_index = index;
 			_popCount = popCount;
-			_sequenceLength = 1;
-		}
-
-		public Location(Area area, int index, int popCount, int sequenceLength)
-		{
-			_area = area;
-			_card = Int32.MaxValue;
-			_index = index;
-			_popCount = popCount;
-			_sequenceLength = sequenceLength;
 		}
 
 		public static Location InSwapCell(int card)
