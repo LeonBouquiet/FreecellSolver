@@ -298,7 +298,7 @@ namespace FreecellSolver
 			{
 				int card = RemoveSingleCard(move.Source.Area, move.Source.Card, move.Source.Index);
 				if (moveLogger != null)
-					moveLogger.LogMoveBetweenAreas(card, move.Source.Area, move.Source.Index, move.Target.Area, move.Target.Index, !updateLevel);
+					moveLogger.LogMoveBetweenAreas(card, move.Source.Area, move.Source.Index, move.Target.Area, move.Target.Index);
 
 				AppendSingleCard(move.Target.Area, card, move.Target.Index);
 			}

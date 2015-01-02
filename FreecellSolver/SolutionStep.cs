@@ -5,26 +5,13 @@ using System.Text;
 
 namespace FreecellSolver
 {
-	public class MoveDescription
-	{
-		public int MoveIncrement { get; set; }
-
-		public string Text { get; set; }
-
-		public MoveDescription(int moveIncrement, string text)
-		{
-			MoveIncrement = moveIncrement;
-			Text = text;
-		}
-	}
-
 	public class SolutionStep
 	{
 		public SolutionStep Parent { get; private set; }
 
 		public GameState GameState { get; private set; }
 
-		public List<MoveDescription> MoveDescriptions { get; private set; }
+		public List<string> MoveDescriptions { get; private set; }
 
 		/// <summary>
 		/// Returns all SolutionStep's Parents, starting with this one and ending with the root.
@@ -45,7 +32,7 @@ namespace FreecellSolver
 		{
 			Parent = parent;
 			GameState = gameState;
-			MoveDescriptions = new List<MoveDescription>();
+			MoveDescriptions = new List<string>();
 		}
 	}
 }
