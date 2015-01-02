@@ -93,6 +93,9 @@ namespace FreecellSolver
 							_knownGameStates[packedChild] = packedChild;
 							existing.ReplaceWith(packedChild);
 
+							queue.RemoveMany(packedChild.Descendants);
+							queue.AddMany(packedChild.Descendants);
+
 							improveCount++;
 						}
 					}
