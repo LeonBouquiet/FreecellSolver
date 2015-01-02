@@ -109,6 +109,7 @@ namespace FreecellSolver
 			return false;
 		}
 
+
 		public void WriteSolution(GameState initialState, List<PackedGameState> solutionStates)
 		{
 			if (solutionStates == null)
@@ -121,11 +122,21 @@ namespace FreecellSolver
 			List<SolutionStep> solutionSteps = GenerateSolutionSteps(initialState, solutionSet);
 			solutionSteps.Reverse();
 
+			int previousCount = 0;
 			int moveCount = 0;
 			foreach (SolutionStep ss in solutionSteps)
 			{
-				foreach (string moveDescription in ss.MoveDescriptions)
-					_consoleWriter.WriteLine("[{0,3}] {1}", ++moveCount, moveDescription);
+				foreach (MoveDescription moveDescription in ss.MoveDescriptions)
+				{
+					int temporaryIncrement = Math.Min(moveDescription.MoveIncrement, 1);
+					moveCount += temporaryIncrement;
+					string moveCountText = (moveCount != previousCount) ? moveCount.ToString() : "";
+
+					_consoleWriter.WriteLine("[{0,3}] {1}", moveCountText, moveDescription.Text);
+
+					previousCount = moveCount;
+					moveCount += (-temporaryIncrement + moveDescription.MoveIncrement);
+				}
 
 				PrintGameState(ss.GameState);
 			}
