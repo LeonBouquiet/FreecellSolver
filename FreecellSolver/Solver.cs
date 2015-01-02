@@ -83,11 +83,18 @@ namespace FreecellSolver
 					PackedGameState existing = _knownGameStates.TryGetValue(packedChild);
 					if (existing == null || existing.Level > packedChild.Level)
 					{
-						if (existing != null)
-							improveCount++;
+						if (existing == null)
+						{
+							_knownGameStates[packedChild] = packedChild;
+							queue.Enqueue(packedChild);
+						}
+						else
+						{
+							_knownGameStates[packedChild] = packedChild;
+							existing.ReplaceWith(packedChild);
 
-						_knownGameStates[packedChild] = packedChild;
-						queue.Enqueue(packedChild);
+							improveCount++;
+						}
 					}
 				}
 

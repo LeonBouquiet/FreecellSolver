@@ -245,6 +245,9 @@ namespace FreecellSolver
 			//are affected by these operations.
 			PackedGameState packed = PackedGameState.Pack(this);
 			packed.ParentState = parent;
+			if (parent != null)
+				parent.ChildStates.Add(packed);
+
 			return packed;
 		}
 
