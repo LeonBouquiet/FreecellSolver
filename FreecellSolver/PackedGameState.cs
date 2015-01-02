@@ -21,14 +21,8 @@ namespace FreecellSolver
 		private int _minimumSolutionCost;
 		private byte[] _bytes;
 		private int _hash;
-		private List<PackedGameState> _childStates = new List<PackedGameState>();
 
 		public PackedGameState ParentState { get; set; }
-
-		public List<PackedGameState> ChildStates
-		{
-			get { return _childStates; }
-		}
 
 		public int Level
 		{
@@ -99,36 +93,6 @@ namespace FreecellSolver
 
 		private static MD5 _md5 = MD5.Create();
 
-		public void ReplaceWith(PackedGameState replacement)
-		{
-			int levelDifference = this.Level - replacement.Level;
-			if (levelDifference < 1)
-				throw new ArgumentException("The replacement doesn't improve the level.");
-
-			//Tell our Parent to use the replacement instead.
-			int index = ParentState.ChildStates.FindIndex(pgs => Object.ReferenceEquals(pgs, this));
-			ParentState.ChildStates[index] = replacement;
-
-			//Have each of the ChildStates use the replacement as their new parent.
-			foreach(PackedGameState childState in _childStates)
-			{
-				replacement.ChildStates.Add(childState);
-				childState.ParentState = replacement;
-
-				//Decrease the level for this childState and all its descendants with the difference 
-				//between the original and the replacement level.
-				childState.ImproveLevel(levelDifference);
-			}
-		}
-
-		private void ImproveLevel(int improvement)
-		{
-			_level -= improvement;
-
-			foreach (PackedGameState childState in _childStates)
-				childState.ImproveLevel(improvement);
-		}
-
 		public static PackedGameState Pack(GameState gameState)
 		{
 			List<byte> bytes = new List<byte>(70);
@@ -168,6 +132,7 @@ namespace FreecellSolver
 
 			return new PackedGameState(gameState.Level, gameState.Priority, gameState.MinimumSolutionCost, gameStateBytes, hash);
 		}
+
 
 		public GameState Unpack()
 		{
