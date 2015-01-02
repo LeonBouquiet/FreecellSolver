@@ -105,40 +105,28 @@ namespace FreecellSolver
 			if (levelDifference < 1)
 				throw new ArgumentException("The replacement doesn't improve the level.");
 
-			//Our parent won't be needing us anymore.
+			//Tell our Parent to use the replacement instead.
 			int index = ParentState.ChildStates.FindIndex(pgs => Object.ReferenceEquals(pgs, this));
-			ParentState.ChildStates.RemoveAt(index);
+			ParentState.ChildStates[index] = replacement;
 
 			//Have each of the ChildStates use the replacement as their new parent.
 			foreach(PackedGameState childState in _childStates)
 			{
 				replacement.ChildStates.Add(childState);
 				childState.ParentState = replacement;
-			}
 
-			//Decrease the level for this childState and all its descendants with the difference 
-			//between the original and the replacement level.
-			Descendants.ForEach(pgs => pgs._level -= levelDifference);
+				//Decrease the level for this childState and all its descendants with the difference 
+				//between the original and the replacement level.
+				childState.ImproveLevel(levelDifference);
+			}
 		}
 
-		public List<PackedGameState> Descendants
+		private void ImproveLevel(int improvement)
 		{
-			get
-			{
-				List<PackedGameState> result = new List<PackedGameState>();
+			_level -= improvement;
 
-				List<PackedGameState> stack = _childStates.ToList();
-				while (stack.Count > 0)
-				{
-					PackedGameState packed = stack[stack.Count - 1];
-					stack.RemoveAt(stack.Count - 1);
-
-					result.Add(packed);
-					stack.AddRange(packed.ChildStates);
-				}
-
-				return result;
-			}
+			foreach (PackedGameState childState in _childStates)
+				childState.ImproveLevel(improvement);
 		}
 
 		public static PackedGameState Pack(GameState gameState)

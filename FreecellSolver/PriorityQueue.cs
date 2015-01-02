@@ -30,6 +30,7 @@ namespace FreecellSolver
 			_items = new OrderedBag<T>(comparison);
 		}
 
+
 		public void Enqueue(T item)
 		{
 			_items.Add(item);
@@ -43,11 +44,6 @@ namespace FreecellSolver
 		public void Add(T item)
 		{
 			_items.Add(item);
-		}
-
-		public void AddMany(IEnumerable<T> items)
-		{
-			_items.AddMany(items);
 		}
 
 		public void Clear()
@@ -78,11 +74,6 @@ namespace FreecellSolver
 		public bool Remove(T item)
 		{
 			return _items.Remove(item);
-		}
-
-		public int RemoveMany(IEnumerable<T> items)
-		{
-			return _items.RemoveMany(items);
 		}
 
 		public long RemoveAll(Predicate<T> predicate)
