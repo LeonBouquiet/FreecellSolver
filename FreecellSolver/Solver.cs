@@ -10,13 +10,16 @@ namespace FreecellSolver
 {
 	public class Solver
 	{
-		private IConsoleWriter _consoleWriter;
+		private Statistics _stats;
 
-		public int ProcessCount { get; private set; }
-
-		public Solver(IConsoleWriter consoleWriter)
+		public Statistics Statistics
 		{
-			_consoleWriter = consoleWriter;
+			get { return _stats; }
+		}
+
+		public Solver()
+		{
+			_stats = new Statistics();
 		}
 
 		private IDictionary<PackedGameState, PackedGameState> _knownGameStates = new Dictionary<PackedGameState, PackedGameState>();
@@ -25,7 +28,6 @@ namespace FreecellSolver
 		public void Solve(GameState gameState)
 		{
 			List<PackedGameState> solutionStates = RunPrioritized(gameState);
-			List<GameState> unpacked = solutionStates.Select(pgs => pgs.Unpack()).Reverse().ToList();
 
 			WriteSolution(gameState, solutionStates);
 		}
@@ -37,20 +39,30 @@ namespace FreecellSolver
 
 			List<PackedGameState> currentOptimalSolution = null;
 			int maxLevel = initialState.MinimumSolutionCost + 11;
-			long pruneCount = 0;
-			long improveCount = 0;
+
+			_stats.Initialize(() => queue.Count);
 
 			initialState = (GameState)initialState.Clone();
 			PackedGameState initialPackedState = initialState.NormalizeAndPack(null);
 			queue.Enqueue(initialPackedState);
 
 			int loopLimit = 9950000;
-			for (ProcessCount = 0; ProcessCount < loopLimit; ProcessCount++)
+			for (_stats.ProcessCount = 0; _stats.ProcessCount < loopLimit; _stats.ProcessCount++)
 			{
 				if (queue.Count == 0)
 				{
-					_consoleWriter.WriteLine("No more GameStates available in the queue.");
-					return currentOptimalSolution;
+					_stats.LogEvent("No more GameStates available in the queue.");
+					break;
+				}
+
+				if(Console.KeyAvailable)
+				{
+					ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: false);
+					if (Char.ToLower(keyInfo.KeyChar) == 's')
+					{
+						_stats.LogEvent("User pressed 's' with {0} GameStates left in the queue, stopping...", queue.Count);
+						break;
+					}
 				}
 
 				PackedGameState packedState = queue.Dequeue();
@@ -65,7 +77,7 @@ namespace FreecellSolver
 					//of being better, otherwise disregard it.
 					if (childState.Level >= maxLevel || (childState.Level + childState.MinimumSolutionCost >= maxLevel))
 					{
-						pruneCount++;
+						_stats.PruneCount++;
 						continue;
 					}
 
@@ -75,10 +87,10 @@ namespace FreecellSolver
 						currentOptimalSolution = packedChild.PathToRoot;
 						maxLevel = childState.Level;
 
-						_consoleWriter.Write("New optimal solution found: level {0}, {1} steps. Pruning queue... ", childState.Level, currentOptimalSolution.Count);
+						_stats.LogEvent("New optimal solution found: level {0}, {1} steps. Pruning queue... ", childState.Level, currentOptimalSolution.Count);
 
 						long removeCount = queue.RemoveAll(gs => ShouldBePruned(gs, maxLevel));
-						_consoleWriter.WriteLine("Removed {0} queue entries.", removeCount);
+						_stats.LogEvent("Removed {0} queue entries.", removeCount);
 					}
 
 					//If we didn't queue this child state before, queue it now.
@@ -86,17 +98,18 @@ namespace FreecellSolver
 					if (existing == null || existing.Level > packedChild.Level)
 					{
 						if (existing != null)
-							improveCount++;
+							_stats.ImproveCount++;
 
 						_knownGameStates[packedChild] = packedChild;
 						queue.Enqueue(packedChild);
 					}
 				}
 
-				if (ProcessCount % 10000 == 0)
-					_consoleWriter.WriteLine("{0,8} processed, {1,8} queued, {2} pruned, {3} improved.", ProcessCount, queue.Count, pruneCount, improveCount);
+				if (_stats.ProcessCount % 10000 == 0)
+					_stats.LogProgress();
 			}
 
+			_stats.StopTimer();
 			return currentOptimalSolution;
 		}
 
@@ -116,7 +129,7 @@ namespace FreecellSolver
 		{
 			if (solutionStates == null)
 			{
-				_consoleWriter.WriteLine("No solution is available.");
+				Statistics.LogEvent("No solution is available.");
 				return;
 			}
 
@@ -134,7 +147,7 @@ namespace FreecellSolver
 					moveCount += temporaryIncrement;
 					string moveCountText = (moveCount != previousCount) ? moveCount.ToString() : "";
 
-					_consoleWriter.WriteLine("[{0,3}] {1}", moveCountText, moveDescription.Text);
+					Statistics.LogEvent("[{0,3}] {1}", moveCountText, moveDescription.Text);
 
 					previousCount = moveCount;
 					moveCount += (-temporaryIncrement + moveDescription.MoveIncrement);
@@ -198,8 +211,7 @@ namespace FreecellSolver
 
 		private void PrintGameState(GameState gameState)
 		{
-			_consoleWriter.WriteLine(gameState.Description);
-			_consoleWriter.WriteLine("");
+			Statistics.LogEvent(gameState.Description + Environment.NewLine);
 		}
 	}
 }

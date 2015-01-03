@@ -113,20 +113,16 @@ namespace FreecellSolverApp
 		//Balanced: 1 (20 min), 12851 (30min)
 		public static void Main(string[] args)
 		{
-			ConsoleWriter consoleWriter = new ConsoleWriter();
-
 			int freeCellGameNr = 3;
 			GameState gameState = GameStateGenerator.GenerateGameState(freeCellGameNr);
-			Solver solver = new Solver(consoleWriter);
+			Solver solver = new Solver();
 
-			consoleWriter.WriteLine("Starting to solve FreeCell game number {0}...", freeCellGameNr);
-
-			Stopwatch stopwatch = Stopwatch.StartNew();
+			solver.Statistics.LogEvent("Starting to solve FreeCell game number {0}...", freeCellGameNr);
 			solver.Solve(gameState);
-			stopwatch.Stop();
 
-			double rate = solver.ProcessCount / stopwatch.Elapsed.TotalSeconds;
-			Console.WriteLine("Found solution after {0} gamestates. Elapsed time: {1}m {2}s ({3:n0} gamestates/sec).", solver.ProcessCount, Math.Floor(stopwatch.Elapsed.TotalMinutes), stopwatch.Elapsed.Seconds, rate);
+			Statistics stats = solver.Statistics;
+			double rate = stats.ProcessCount / stats.ElapsedTime.TotalSeconds;
+			solver.Statistics.LogEvent("Found solution after {0} gamestates. Elapsed time: {1}m {2}s ({3:n0} gamestates/sec).", stats.ProcessCount, Math.Floor(stats.ElapsedTime.TotalMinutes), stats.ElapsedTime.Seconds, rate);
 
 			Console.WriteLine("Press enter to exit...");
 			Console.ReadLine();
