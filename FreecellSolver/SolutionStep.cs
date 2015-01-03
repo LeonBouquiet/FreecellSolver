@@ -26,6 +26,11 @@ namespace FreecellSolver
 
 		public List<MoveDescription> MoveDescriptions { get; private set; }
 
+		public int Priority
+		{
+			get { return GameState.Priority; }
+		}
+
 		/// <summary>
 		/// Returns all SolutionStep's Parents, starting with this one and ending with the root.
 		/// </summary>

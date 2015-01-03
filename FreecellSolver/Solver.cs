@@ -25,6 +25,8 @@ namespace FreecellSolver
 		public void Solve(GameState gameState)
 		{
 			List<PackedGameState> solutionStates = RunPrioritized(gameState);
+			List<GameState> unpacked = solutionStates.Select(pgs => pgs.Unpack()).Reverse().ToList();
+
 			WriteSolution(gameState, solutionStates);
 		}
 
@@ -140,20 +142,26 @@ namespace FreecellSolver
 
 				PrintGameState(ss.GameState);
 			}
+
+			List<GameState> states = solutionSteps.Select(s => s.GameState).ToList();
 		}
 
 		public List<SolutionStep> GenerateSolutionSteps(GameState initialState, Set<PackedGameState> solutionSet)
 		{
-			HashSet<PackedGameState> knownGameStates = new HashSet<PackedGameState>();
-			Queue<SolutionStep> queue = new Queue<SolutionStep>();
+			Dictionary<PackedGameState, PackedGameState> knownGameStates = new Dictionary<PackedGameState, PackedGameState>();
+			PriorityQueue<SolutionStep> queue = new PriorityQueue<SolutionStep>((left, right) => (left.Priority - right.Priority));
 
 			initialState = (GameState)initialState.Clone();
 			PrintGameState(initialState);
 
 			queue.Enqueue(new SolutionStep(null, initialState));
+			List<SolutionStep> currentOptimalSolution = null;
 
 			for (int index = 0; index < 100000; index++)
 			{
+				if (queue.Count == 0)
+					break;
+
 				SolutionStep currentStep = queue.Dequeue();
 
 				Move[] moves = MoveGenerator.Generate(currentStep.GameState);
@@ -165,26 +173,27 @@ namespace FreecellSolver
 					GameState normalizedChild = (GameState)childState.Clone();
 					PackedGameState packedChild = normalizedChild.NormalizeAndPack();
 
-					//Only enqueue the child states that are known to be in the solution and that 
-					//we haven't processed before.
-					if (solutionSet.Contains(packedChild) && knownGameStates.Contains(packedChild) == false)
+					//Only enqueue the child states that are known to be in the solution.
+					PackedGameState existing = knownGameStates.TryGetValue(packedChild);
+					if (solutionSet.Contains(packedChild) && (existing == null || packedChild.Priority < existing.Priority))
 					{
 						SolutionStep childStep = new SolutionStep(currentStep, childState);
 						childStep.MoveDescriptions.AddRange(moveLogger.Messages);
 
 						queue.Enqueue(childStep);
-						knownGameStates.Add(packedChild);
+						knownGameStates[packedChild] = packedChild;
 
 						if (childState.IsSolved)
 						{
 							List<SolutionStep> solutionSteps = childStep.PathToRoot;
-							return solutionSteps;
+							if (currentOptimalSolution == null || solutionSteps[0].Priority < currentOptimalSolution[0].Priority)
+								currentOptimalSolution = solutionSteps;
 						}
 					}
 				}
 			}
 
-			return null;
+			return currentOptimalSolution;
 		}
 
 		private void PrintGameState(GameState gameState)
