@@ -117,12 +117,14 @@ namespace FreecellSolverApp
 			GameState gameState = GameStateGenerator.GenerateGameState(freeCellGameNr);
 			Solver solver = new Solver();
 
-			solver.Statistics.LogEvent("Starting to solve FreeCell game number {0}...", freeCellGameNr);
+			solver.Statistics.Name = "Game-3";
+			solver.Statistics.LogInfo("Starting to solve FreeCell game number {0}...", freeCellGameNr);
 			solver.Solve(gameState);
 
 			Statistics stats = solver.Statistics;
 			double rate = stats.ProcessCount / stats.ElapsedTime.TotalSeconds;
-			solver.Statistics.LogEvent("Found solution after {0} gamestates. Elapsed time: {1}m {2}s ({3:n0} gamestates/sec).", stats.ProcessCount, Math.Floor(stats.ElapsedTime.TotalMinutes), stats.ElapsedTime.Seconds, rate);
+			solver.Statistics.LogInfo("Found solution after {0} gamestates. Elapsed time: {1}m {2}s ({3:n0} gamestates/sec).", stats.ProcessCount, Math.Floor(stats.ElapsedTime.TotalMinutes), stats.ElapsedTime.Seconds, rate);
+			solver.Statistics.Save();
 
 			Console.WriteLine("Press enter to exit...");
 			Console.ReadLine();

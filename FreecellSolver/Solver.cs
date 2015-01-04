@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,16 +11,11 @@ namespace FreecellSolver
 {
 	public class Solver
 	{
-		private Statistics _stats;
-
-		public Statistics Statistics
-		{
-			get { return _stats; }
-		}
+		public Statistics Statistics { get; set; }
 
 		public Solver()
 		{
-			_stats = new Statistics();
+			Statistics = new Statistics();
 		}
 
 		private IDictionary<PackedGameState, PackedGameState> _knownGameStates = new Dictionary<PackedGameState, PackedGameState>();
@@ -35,23 +31,23 @@ namespace FreecellSolver
 		public List<PackedGameState> RunPrioritized(GameState initialState)
 		{
 			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
-			PrintGameState(initialState);
+			Statistics.LogInfo(initialState.Description + Environment.NewLine);
 
 			List<PackedGameState> currentOptimalSolution = null;
 			int maxLevel = initialState.MinimumSolutionCost + 11;
 
-			_stats.Initialize(() => queue.Count);
+			Statistics.Initialize(() => queue.Count);
 
 			initialState = (GameState)initialState.Clone();
 			PackedGameState initialPackedState = initialState.NormalizeAndPack(null);
 			queue.Enqueue(initialPackedState);
 
 			int loopLimit = 9950000;
-			for (_stats.ProcessCount = 0; _stats.ProcessCount < loopLimit; _stats.ProcessCount++)
+			for (Statistics.ProcessCount = 0; Statistics.ProcessCount < loopLimit; Statistics.ProcessCount++)
 			{
 				if (queue.Count == 0)
 				{
-					_stats.LogEvent("No more GameStates available in the queue.");
+					Statistics.LogInfo("No more GameStates available in the queue.");
 					break;
 				}
 
@@ -60,24 +56,27 @@ namespace FreecellSolver
 					ConsoleKeyInfo keyInfo = Console.ReadKey(intercept: false);
 					if (Char.ToLower(keyInfo.KeyChar) == 's')
 					{
-						_stats.LogEvent("User pressed 's' with {0} GameStates left in the queue, stopping...", queue.Count);
+						Statistics.LogInfo("User pressed 's' with {0} GameStates left in the queue, stopping...", queue.Count);
 						break;
 					}
 				}
 
 				PackedGameState packedState = queue.Dequeue();
 				GameState gameState = packedState.Unpack();
+				Statistics[gameState.Level].Processed++;
 
 				Move[] moves = MoveGenerator.Generate(gameState);
 				foreach (Move move in moves)
 				{
+					Statistics[gameState.Level].ChildStatesGenerated++;
 					GameState childState = gameState.CreateChildState(move, null);
 
 					//If we've already found a solution, only explore this one if it has a chance 
 					//of being better, otherwise disregard it.
 					if (childState.Level >= maxLevel || (childState.Level + childState.MinimumSolutionCost >= maxLevel))
 					{
-						_stats.PruneCount++;
+						Statistics.PruneCount++;
+						Statistics[gameState.Level].ChildStatesPruned++;
 						continue;
 					}
 
@@ -87,10 +86,10 @@ namespace FreecellSolver
 						currentOptimalSolution = packedChild.PathToRoot;
 						maxLevel = childState.Level;
 
-						_stats.LogEvent("New optimal solution found: level {0}, {1} steps. Pruning queue... ", childState.Level, currentOptimalSolution.Count);
+						Statistics.LogEventWithoutNewLine("New optimal solution found: level {0}, {1} steps. Pruning queue... ", childState.Level, currentOptimalSolution.Count);
 
 						long removeCount = queue.RemoveAll(gs => ShouldBePruned(gs, maxLevel));
-						_stats.LogEvent("Removed {0} queue entries.", removeCount);
+						Statistics.LogEventAddition("Removed {0} queue entries.", removeCount);
 					}
 
 					//If we didn't queue this child state before, queue it now.
@@ -98,18 +97,22 @@ namespace FreecellSolver
 					if (existing == null || existing.Level > packedChild.Level)
 					{
 						if (existing != null)
-							_stats.ImproveCount++;
+							Statistics.ImproveCount++;
 
 						_knownGameStates[packedChild] = packedChild;
 						queue.Enqueue(packedChild);
 					}
+					else
+					{
+						Statistics[gameState.Level].ChildStatesDuplicates++;
+					}
 				}
 
-				if (_stats.ProcessCount % 10000 == 0)
-					_stats.LogProgress();
+				if (Statistics.ProcessCount % 10000 == 0)
+					Statistics.LogProgress();
 			}
 
-			_stats.StopTimer();
+			Statistics.StopTimer();
 			return currentOptimalSolution;
 		}
 
@@ -129,9 +132,12 @@ namespace FreecellSolver
 		{
 			if (solutionStates == null)
 			{
-				Statistics.LogEvent("No solution is available.");
+				Statistics.LogResult("No solution is available.");
 				return;
 			}
+
+			StringWriter writer = new StringWriter();
+			writer.WriteLine(initialState.Description + Environment.NewLine);
 
 			Set<PackedGameState> solutionSet = new Set<PackedGameState>(solutionStates);
 			List<SolutionStep> solutionSteps = GenerateSolutionSteps(initialState, solutionSet);
@@ -147,16 +153,16 @@ namespace FreecellSolver
 					moveCount += temporaryIncrement;
 					string moveCountText = (moveCount != previousCount) ? moveCount.ToString() : "";
 
-					Statistics.LogEvent("[{0,3}] {1}", moveCountText, moveDescription.Text);
+					writer.WriteLine("[{0,3}] {1}", moveCountText, moveDescription.Text);
 
 					previousCount = moveCount;
 					moveCount += (-temporaryIncrement + moveDescription.MoveIncrement);
 				}
 
-				PrintGameState(ss.GameState);
+				writer.WriteLine(ss.GameState.Description + Environment.NewLine);
 			}
 
-			List<GameState> states = solutionSteps.Select(s => s.GameState).ToList();
+			Statistics.LogResult(writer.ToString());
 		}
 
 		public List<SolutionStep> GenerateSolutionSteps(GameState initialState, Set<PackedGameState> solutionSet)
@@ -165,7 +171,6 @@ namespace FreecellSolver
 			PriorityQueue<SolutionStep> queue = new PriorityQueue<SolutionStep>((left, right) => (left.Priority - right.Priority));
 
 			initialState = (GameState)initialState.Clone();
-			PrintGameState(initialState);
 
 			queue.Enqueue(new SolutionStep(null, initialState));
 			List<SolutionStep> currentOptimalSolution = null;
@@ -207,11 +212,6 @@ namespace FreecellSolver
 			}
 
 			return currentOptimalSolution;
-		}
-
-		private void PrintGameState(GameState gameState)
-		{
-			Statistics.LogEvent(gameState.Description + Environment.NewLine);
 		}
 	}
 }
