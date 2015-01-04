@@ -440,7 +440,7 @@ namespace FreecellSolver
 		/// middle two containing the suit and rank, respectively.</param>
 		/// <remarks>
 		/// Example: <code>
-		/// "(..)(..)(..)(..)&lt;..&gt;&lt;..&gt;&lt;..&gt;&lt;..&gt;\n" +
+		/// "(..)(..)(..)(..){h2}{..}{..}{..}\n" +
 		/// " d9  s5  sJ  hJ  d6  hK  c4  h6 \n" +
 		/// " h8  sA  s6  hT  cA  sT  d8  c8 \n" +
 		/// " c2  h3  s4  s8  s2  sK  h7  d2 \n" +
@@ -463,7 +463,7 @@ namespace FreecellSolver
 			try
 			{
 				//Verify that the first line contains the swap cells and foundations, respectively...
-				if (lines[0].Length < 32 || lines[0].StartsWith("(") == false || lines[0].EndsWith(">") == false)
+				if (lines[0].Length < 32 || lines[0].StartsWith("(") == false || lines[0].EndsWith("}") == false)
 					throw new FormatException("The first line of the cascadeText must contain the swap cells and foundations.");
 
 				//...and parse their contents.
@@ -534,7 +534,7 @@ namespace FreecellSolver
 			for (int index = _swapCells.Count; index < 4; index++)
 				sb.Append("(..)");
 			foreach (int card in _foundations)
-				sb.AppendFormat("<{0}>", CardUtil.GetCardString(card));
+				sb.AppendFormat("{{{0}}}", CardUtil.GetCardString(card));
 			result.Add(sb.ToString());
 
 			//Now get the multiline descriptions for the 8 Cascades, and determine what the 
