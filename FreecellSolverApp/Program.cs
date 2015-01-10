@@ -113,11 +113,17 @@ namespace FreecellSolverApp
 		//Balanced: 1 (20 min), 12851 (30min)
 		public static void Main(string[] args)
 		{
-			int freeCellGameNr = 3;
+			if(args.Length == 0)
+			{
+				Console.WriteLine("Usage: FreeSolverApp <gamenr>");
+				return;
+			}
+
+			int freeCellGameNr = Int32.Parse(args[0]);
 			GameState gameState = GameStateGenerator.GenerateGameState(freeCellGameNr);
 			Solver solver = new Solver();
 
-			solver.Statistics.Name = "Game-3";
+			solver.Statistics.Name = string.Format("Game-{0}", freeCellGameNr);
 			solver.Statistics.LogInfo("Starting to solve FreeCell game number {0}...", freeCellGameNr);
 			solver.Solve(gameState);
 
@@ -126,8 +132,9 @@ namespace FreecellSolverApp
 			solver.Statistics.LogInfo("Found solution after {0} gamestates. Elapsed time: {1}m {2}s ({3:n0} gamestates/sec).", stats.ProcessCount, Math.Floor(stats.ElapsedTime.TotalMinutes), stats.ElapsedTime.Seconds, rate);
 			solver.Statistics.Save();
 
-			Console.WriteLine("Press enter to exit...");
-			Console.ReadLine();
+			Console.WriteLine("Results saved; Done.");
+			//Console.WriteLine("Press enter to exit...");
+			//Console.ReadLine();
 		}
 
 		//[ 41] Move the 2 cards "s8, h9" from cascade 7 to cascade 4. - 8 Stap

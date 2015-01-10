@@ -42,14 +42,9 @@ namespace FreecellSolver
 			PackedGameState initialPackedState = initialState.NormalizeAndPack(null);
 			queue.Enqueue(initialPackedState);
 
-			int loopLimit = 9950000;
-			for (Statistics.ProcessCount = 0; Statistics.ProcessCount < loopLimit; Statistics.ProcessCount++)
+			while (queue.Count > 0)
 			{
-				if (queue.Count == 0)
-				{
-					Statistics.LogInfo("No more GameStates available in the queue.");
-					break;
-				}
+				Statistics.ProcessCount++;
 
 				if(Console.KeyAvailable)
 				{

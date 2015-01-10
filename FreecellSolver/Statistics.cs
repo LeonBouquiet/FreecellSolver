@@ -133,7 +133,10 @@ namespace FreecellSolver
 
 		public void LogInfo(string format, params object[] args)
 		{
-			string message = string.Format(CultureInfo.InvariantCulture, format, args);
+			string message = (args.Length > 0)
+				? string.Format(CultureInfo.InvariantCulture, format, args)
+				: format;
+
 			Entry entry = CreateEntry(EntryType.Info, message);
 			_entries.Add(entry);
 
@@ -142,7 +145,10 @@ namespace FreecellSolver
 
 		public void LogEventWithoutNewLine(string format, params object[] args)
 		{
-			string message = string.Format(CultureInfo.InvariantCulture, format, args);
+			string message = (args.Length > 0)
+				? string.Format(CultureInfo.InvariantCulture, format, args)
+				: format;
+
 			Entry entry = CreateEntry(EntryType.Solution, message);
 			_entries.Add(entry);
 
@@ -151,7 +157,10 @@ namespace FreecellSolver
 
 		public void LogEventAddition(string format, params object[] args)
 		{
-			string message = string.Format(CultureInfo.InvariantCulture, format, args);
+			string message = (args.Length > 0)
+				? string.Format(CultureInfo.InvariantCulture, format, args)
+				: format;
+
 			_entries.Last().Message += message;
 
 			Console.WriteLine(message);
@@ -205,6 +214,8 @@ namespace FreecellSolver
 				new XAttribute("offset", entry.Offset.ToString("hh\\:mm\\:ss")),
 				new XAttribute("processed", entry.Processed),
 				new XAttribute("queued", entry.Queued),
+				new XAttribute("pruned", entry.Pruned),
+				new XAttribute("improved", entry.Improved),
 				entry.Message);
 
 			return entryElt;
