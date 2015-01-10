@@ -23,6 +23,11 @@ namespace FreecellSolver
 			get { return ChildStatesGenerated - ChildStatesPruned - ChildStatesDuplicates; }
 		}
 
+		public double RawBranchingFactor
+		{
+			get { return ChildStatesGenerated / (double)Processed; }
+		}
+
 		public double BranchingFactor
 		{
 			get { return ChildStatesRemaining / (double)Processed; }
@@ -199,10 +204,17 @@ namespace FreecellSolver
 				.Select(e => CreateEntryElement(e))
 				.ToList();
 
+			List<XElement> statisticsElts = _levelStatistics
+				.Select((ls, index) => CreateStatisticsElement(index, ls))
+				.ToList();
+
+			XElement levelStatisticsElt = new XElement("levelStatistics", statisticsElts);
+
 			XDocument xdoc = new XDocument(
 				new XElement("FreeCell",
 					new XAttribute("name", Name),
 					new XAttribute("startTime", this.StartTime),
+					new XElement("levelStatistics", statisticsElts),
 					entryElts));
 
 			xdoc.Save(xmlPath);
@@ -219,6 +231,21 @@ namespace FreecellSolver
 				entry.Message);
 
 			return entryElt;
+		}
+
+		private XElement CreateStatisticsElement(int level, LevelStatistics stats)
+		{
+			XElement statisticsElt = new XElement("statistics",
+				new XAttribute("level", level),
+				new XAttribute("processed", stats.Processed),
+				new XAttribute("rawBranchingFactor", string.Format(CultureInfo.InvariantCulture, "{0:N1}", stats.RawBranchingFactor)),
+				new XAttribute("childStatesGenerated", stats.ChildStatesGenerated),
+				new XAttribute("childStatesDuplicates", stats.ChildStatesDuplicates),
+				new XAttribute("childStatesPruned", stats.ChildStatesPruned),
+				new XAttribute("childStatesRemaining", stats.ChildStatesRemaining),
+				new XAttribute("branchingFactor", string.Format(CultureInfo.InvariantCulture, "{0:N1}", stats.BranchingFactor)));
+
+			return statisticsElt;
 		}
 	}
 }
