@@ -230,7 +230,10 @@ namespace FreecellSolver
 			//  Completeness	[0, 52]		10 * Completeness    = [0, 520]
 			//  Availability	[0, 12]		20 * Availability    = [0, 240]
 			//  Level			[0, ->]		-10 * Level
-			_priority = 480 + (8 * Level) - (6 * Consecutiveness + 10 * Completeness + 20 * Availability);
+			_priority = 480 + (ConfigSettings.LevelWeight * Level) - 
+				(ConfigSettings.ConsecutivenessWeight * Consecutiveness + 
+				 ConfigSettings.CompletenessWeight * Completeness + 
+				 ConfigSettings.AvailabilityWeight * Availability);
 		}
 
 		public PackedGameState NormalizeAndPack(PackedGameState parent = null)

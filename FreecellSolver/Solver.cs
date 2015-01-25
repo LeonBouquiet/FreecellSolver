@@ -30,8 +30,14 @@ namespace FreecellSolver
 
 		public List<PackedGameState> RunPrioritized(GameState initialState)
 		{
-			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
+			if(ConfigSettings.Relaxation > 0)
+				Statistics.LogInfo("*** Relaxed pruning: -{0} ***", ConfigSettings.Relaxation);
+
+			Statistics.LogInfo("Configured weights: Level={0}, Consecutiveness={1}, Completeness={2}, Availability={3}",
+				ConfigSettings.LevelWeight, ConfigSettings.ConsecutivenessWeight, ConfigSettings.CompletenessWeight, ConfigSettings.AvailabilityWeight);
 			Statistics.LogInfo(initialState.Description + Environment.NewLine);
+
+			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
 
 			List<PackedGameState> currentOptimalSolution = null;
 			int maxLevel = initialState.MinimumSolutionCost + 11;
@@ -68,7 +74,7 @@ namespace FreecellSolver
 
 					//If we've already found a solution, only explore this one if it has a chance 
 					//of being better, otherwise disregard it.
-					if (childState.Level >= maxLevel || (childState.Level + childState.MinimumSolutionCost >= maxLevel))
+					if (childState.Level >= maxLevel || (childState.Level + childState.MinimumSolutionCost - ConfigSettings.Relaxation >= maxLevel))
 					{
 						Statistics.PruneCount++;
 						Statistics[gameState.Level].ChildStatesPruned++;
