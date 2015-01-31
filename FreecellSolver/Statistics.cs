@@ -128,12 +128,12 @@ namespace FreecellSolver
 			_stopTime = DateTime.Now;
 		}
 
-		public void LogProgress()
+		public void LogProgress(int breakpointCount)
 		{
 			Entry entry = CreateEntry(EntryType.Progress, null);
 			_entries.Add(entry);
 
-			Console.WriteLine("[{0:hh\\:mm\\:ss}] {1,8} processed, {2,8} queued, {3} pruned, {4} improved.", entry.Offset, entry.Processed, entry.Queued, entry.Pruned, entry.Improved);
+			Console.WriteLine("[{0:hh\\:mm\\:ss}] {1,8} processed, {2,8} queued, {3} pruned, {4} improved, {5} breakpoints queued.", entry.Offset, entry.Processed, entry.Queued, entry.Pruned, entry.Improved, breakpointCount);
 		}
 
 		public void LogInfo(string format, params object[] args)
