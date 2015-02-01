@@ -142,24 +142,6 @@ namespace FreecellSolver
 			_hash = hash;
 		}
 
-		public override bool Equals(object obj)
-		{
-			PackedGameState other = obj as PackedGameState;
-			if (other == null)
-				return false;
-
-			if (this._hash != other._hash || this._bytes.Length != other._bytes.Length)
-				return false;
-
-			for (int index = 0; index < _bytes.Length; index++)
-			{
-				if (this._bytes[index] != other._bytes[index])
-					return false;
-			}
-
-			return true;
-		}
-
 		public override int GetHashCode()
 		{
 			return _hash;
