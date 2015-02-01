@@ -18,7 +18,7 @@ namespace FreecellSolver
 			Statistics = new Statistics();
 		}
 
-		private IDictionary<PackedGameState, PackedGameState> _knownGameStates = new Dictionary<PackedGameState, PackedGameState>();
+		private IDictionary<PackedGameState, PackedGameState> _knownGameStates = new Dictionary<PackedGameState, PackedGameState>(PackedGameState.DictionaryComparer);
 
 
 		public void Solve(GameState gameState)
@@ -37,7 +37,7 @@ namespace FreecellSolver
 				ConfigSettings.LevelWeight, ConfigSettings.ConsecutivenessWeight, ConfigSettings.CompletenessWeight, ConfigSettings.AvailabilityWeight);
 			Statistics.LogInfo(initialState.Description + Environment.NewLine);
 
-			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
+			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>(PackedGameState.PriorityQueueComparer);
 
 			List<PackedGameState> currentOptimalSolution = null;
 			int maxLevel = initialState.MinimumSolutionCost + 11;
@@ -140,7 +140,7 @@ namespace FreecellSolver
 			StringWriter writer = new StringWriter();
 			writer.WriteLine(initialState.Description + Environment.NewLine);
 
-			Set<PackedGameState> solutionSet = new Set<PackedGameState>(solutionStates);
+			Set<PackedGameState> solutionSet = new Set<PackedGameState>(solutionStates, PackedGameState.DictionaryComparer);
 			List<SolutionStep> solutionSteps = GenerateSolutionSteps(initialState, solutionSet);
 			solutionSteps.Reverse();
 
@@ -168,7 +168,7 @@ namespace FreecellSolver
 
 		public List<SolutionStep> GenerateSolutionSteps(GameState initialState, Set<PackedGameState> solutionSet)
 		{
-			Dictionary<PackedGameState, PackedGameState> knownGameStates = new Dictionary<PackedGameState, PackedGameState>();
+			Dictionary<PackedGameState, PackedGameState> knownGameStates = new Dictionary<PackedGameState, PackedGameState>(PackedGameState.DictionaryComparer);
 			PriorityQueue<SolutionStep> queue = new PriorityQueue<SolutionStep>((left, right) => (left.Priority - right.Priority));
 
 			initialState = (GameState)initialState.Clone();

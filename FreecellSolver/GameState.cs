@@ -7,7 +7,7 @@ using System.Linq;
 namespace FreecellSolver
 {
 	[DebuggerDisplay("{PriorityDescription}")]
-	public class GameState: ICloneable
+	public class GameState
 	{
 		private List<int> _swapCells;
 		private List<int> _foundations;
@@ -147,6 +147,16 @@ namespace FreecellSolver
 			get { return Cascades.Sum(c => c.MinimumSolutionCost); }
 		}
 
+		public int HashCode
+		{
+			get
+			{
+				//Warning: very inefficient.
+				GameState clone = (GameState)this.Clone();
+				PackedGameState packed = clone.NormalizeAndPack(null);
+				return packed.GetHashCode();
+			}
+		}
 		/// <summary>
 		/// Copy constructor.
 		/// </summary>
@@ -528,6 +538,7 @@ namespace FreecellSolver
 			//As the first two lines, add the priority description.
 			List<string> result = new List<string>();
 			result.Add(string.Format("Lvl={0,4} CSec={1,2} Cmpl={2,2} MnRq={3,2}", Level, Consecutiveness, Completeness, MinimumSolutionCost));
+			result.Add(string.Format("Hashcode: 0x{0:X8}", this.HashCode));
 			result.Add(string.Format("----- Priority = {0,9} -----", _priority));
 
 			//Get descriptions for the swap cells and foundations.

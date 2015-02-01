@@ -14,6 +14,80 @@ namespace FreecellSolver
 	/// cascade followed by the delimiter 0xFF, except for the last one).</remarks>
 	public class PackedGameState
 	{
+		private class DictionaryComparerImpl : IEqualityComparer<PackedGameState>
+		{
+			public bool Equals(PackedGameState left, PackedGameState right)
+			{
+				if (left == null && right == null)
+					return true;
+
+				if (left == null || right == null)
+					return false;
+
+				if (left._hash != right._hash || left._bytes.Length != right._bytes.Length)
+					return false;
+
+				for (int index = 0; index < left._bytes.Length; index++)
+				{
+					if (left._bytes[index] != right._bytes[index])
+						return false;
+				}
+
+				return true;
+			}
+
+			public int GetHashCode(PackedGameState pgs)
+			{
+				return pgs._hash;
+			}
+		}
+
+		private class PriorityQueueComparerImpl : IComparer<PackedGameState>
+		{
+			public int Compare(PackedGameState left, PackedGameState right)
+			{
+				if (left == null && right == null)
+					return 0;
+				if (left == null || right == null)
+					return (left == null) ? -1 : 1;
+
+				if (left.Priority != right.Priority)
+					return left.Priority - right.Priority;
+
+				if (left._hash != right._hash)
+					return left._hash - right._hash;
+				if (left._bytes.Length != right._bytes.Length)
+					return left._bytes.Length - right._bytes.Length;
+
+				for (int index = 0; index < left._bytes.Length; index++)
+				{
+					if (left._bytes[index] != right._bytes[index])
+						return left._bytes[index] - right._bytes[index];
+				}
+
+				if (left.Level != right.Level)
+					return left.Level - right.Level;
+
+				return left.GetObjectHashCode() - right.GetObjectHashCode();
+			}
+		}
+
+		/// <summary>
+		/// Considers two PackedGameStates to be equal when they have the same hash code and bytes 
+		/// (i.e. the same card positions). Other values, such as Priority or Level do not matter.
+		/// Use this for duplicate detection.
+		/// </summary>
+		public static readonly IEqualityComparer<PackedGameState> DictionaryComparer = new DictionaryComparerImpl();
+
+		/// <summary>
+		/// Defines a complete ordering over PackedGameStates, based on Priority, bytes, Level and 
+		/// GetObjectHashCode(). Use this to sort PackedGameStates in a priority queue.
+		/// The fact that the ordering is complete is important, since PriorityQueue.Remove() will
+		/// use this same Comparer to determine if a PackedGameState from the queue matches the one 
+		/// in the removal list(!).
+		/// </summary>
+		public static readonly IComparer<PackedGameState> PriorityQueueComparer = new PriorityQueueComparerImpl();
+
 		private const byte Delimiter = 0xFF;
 
 		private int _level;
@@ -89,6 +163,12 @@ namespace FreecellSolver
 		public override int GetHashCode()
 		{
 			return _hash;
+		}
+
+		public int GetObjectHashCode()
+		{
+			int result = base.GetHashCode();
+			return result;
 		}
 
 		private static MD5 _md5 = MD5.Create();
