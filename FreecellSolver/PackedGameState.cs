@@ -44,8 +44,6 @@ namespace FreecellSolver
 			get { return _bytes.Length + 4; }
 		}
 
-		public bool Breakpoint { get; set; }
-
 		/// <summary>
 		/// Returns all PackedGameState's ParentStates, starting with this one and ending with the root.
 		/// </summary>
@@ -61,14 +59,13 @@ namespace FreecellSolver
 			}
 		}
 
-		private PackedGameState(int level, int priority, int minimumSolutionCost, byte[] bytes, int hash, bool breakpoint)
+		private PackedGameState(int level, int priority, int minimumSolutionCost, byte[] bytes, int hash)
 		{
 			_level = level;
 			_priority = priority;
 			_minimumSolutionCost = minimumSolutionCost;
 			_bytes = bytes;
 			_hash = hash;
-			Breakpoint = breakpoint;
 		}
 
 		public override bool Equals(object obj)
@@ -133,7 +130,7 @@ namespace FreecellSolver
 					(hashBytes[block * 4 + 2] << 16) ^ (hashBytes[block * 4 + 3] << 23);
 			}
 
-			return new PackedGameState(gameState.Level, gameState.Priority, gameState.MinimumSolutionCost, gameStateBytes, hash, gameState.Breakpoint);
+			return new PackedGameState(gameState.Level, gameState.Priority, gameState.MinimumSolutionCost, gameStateBytes, hash);
 		}
 
 
@@ -166,7 +163,7 @@ namespace FreecellSolver
 				}
 			}
 
-			GameState gameState = new GameState(swapCells, foundations, cascades.ToArray(), _level, Breakpoint);
+			GameState gameState = new GameState(swapCells, foundations, cascades.ToArray(), _level);
 			return gameState;
 		}
 	}

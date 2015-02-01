@@ -7,7 +7,7 @@ using System.Linq;
 namespace FreecellSolver
 {
 	[DebuggerDisplay("{PriorityDescription}")]
-	public class GameState
+	public class GameState: ICloneable
 	{
 		private List<int> _swapCells;
 		private List<int> _foundations;
@@ -147,19 +147,6 @@ namespace FreecellSolver
 			get { return Cascades.Sum(c => c.MinimumSolutionCost); }
 		}
 
-		public bool Breakpoint { get; set; }
-
-		public int HashCode
-		{
-			get
-			{
-				//Warning: very inefficient.
-				GameState clone = (GameState)this.Clone();
-				PackedGameState packed = clone.NormalizeAndPack(null);
-				return packed.GetHashCode();
-			}
-		}
-
 		/// <summary>
 		/// Copy constructor.
 		/// </summary>
@@ -178,7 +165,6 @@ namespace FreecellSolver
 
 			_emptyCascadeCount = state._emptyCascadeCount;
 			_priority = state._priority;
-			Breakpoint = state.Breakpoint;
 		}
 
 		/// <summary>
@@ -199,13 +185,12 @@ namespace FreecellSolver
 		/// if the foundation is emtpy.</param>
 		/// <param name="cascades">The 8 Cascades for this game state.</param>
 		/// <param name="level">The level.</param>
-		public GameState(List<int> swapCells, int[] foundations, Cascade[] cascades, int level, bool breakpoint)
+		public GameState(List<int> swapCells, int[] foundations, Cascade[] cascades, int level)
 		{
 			_swapCells = swapCells;
 			_foundations = new List<int>(foundations);
 			_cascades = new List<Cascade>(cascades);
 			_level = level;
-			Breakpoint = breakpoint;
 
 			PerformSafeFoundationMoves(null);
 		}
@@ -526,7 +511,7 @@ namespace FreecellSolver
 			}
 
 			//Construct the GameState from the parsed data. 
-			GameState gamestate = new GameState(swapCells, foundations, cascades, 0, false);
+			GameState gamestate = new GameState(swapCells, foundations, cascades, 0);
 
 			//At this point, we haven't verified if cards are missing or if cards are duplicated.
 			//Also, it's possible that the cascades contain None cards, or that the foundations
@@ -543,7 +528,6 @@ namespace FreecellSolver
 			//As the first two lines, add the priority description.
 			List<string> result = new List<string>();
 			result.Add(string.Format("Lvl={0,4} CSec={1,2} Cmpl={2,2} MnRq={3,2}", Level, Consecutiveness, Completeness, MinimumSolutionCost));
-			result.Add(string.Format("Hashcode: 0x{0:X8}", this.HashCode));
 			result.Add(string.Format("----- Priority = {0,9} -----", _priority));
 
 			//Get descriptions for the swap cells and foundations.

@@ -44,7 +44,7 @@ namespace FreecellSolver
 				.Select(li => new Cascade(li.AsEnumerable().Reverse()))
 				.ToArray();
 
-			GameState result = new GameState(new List<int>(), new int[] { 0, 0, 0, 0 }, cascades, 0, false);
+			GameState result = new GameState(new List<int>(), new int[] { 0, 0, 0, 0 }, cascades, 0);
 			return result;
 		}
 	}
