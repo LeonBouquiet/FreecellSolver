@@ -18,7 +18,7 @@ namespace FreecellSolver
 			Statistics = new Statistics();
 		}
 
-		private IDictionary<PackedGameState, PackedGameState> _knownGameStates = new Dictionary<PackedGameState, PackedGameState>();
+		private IDictionary<PackedGameState, PackedGameState> _knownGameStates = new Dictionary<PackedGameState, PackedGameState>(PackedGameState.DictionaryComparer);
 
 
 		public void Solve(GameState gameState)
@@ -110,7 +110,7 @@ namespace FreecellSolver
 				ConfigSettings.LevelWeight, ConfigSettings.ConsecutivenessWeight, ConfigSettings.CompletenessWeight, ConfigSettings.AvailabilityWeight);
 			Statistics.LogInfo(initialState.Description + Environment.NewLine);
 
-			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
+			PriorityQueue<PackedGameState> queue = new PriorityQueue<PackedGameState>(PackedGameState.PriorityQueueComparer);
 
 			List<PackedGameState> currentOptimalSolution = null;
 			int maxLevel = initialState.MinimumSolutionCost + 11;
@@ -183,23 +183,32 @@ namespace FreecellSolver
 						int breakpointCount = queue.Count(pgs => pgs.Breakpoint);
 						Statistics.LogEventWithoutNewLine("New optimal solution found: level {0}, {1} steps. Pruning queue... ", childState.Level, currentOptimalSolution.Count);
 
-						List<PackedGameState> queueList = queue.ToList();
+						//List<PackedGameState> queueList = queue.ToList();
+						//List<PackedGameState> removed = queueList.Where(gs => ShouldBePruned(gs, maxLevel)).ToList();
+						//int index = removed.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
+						//int index2 = queueList.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
 
-						List<PackedGameState> removed = queueList.Where(gs => ShouldBePruned(gs, maxLevel)).ToList();
-						int index = removed.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
-						int index2 = queueList.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
+						//Self-test
+						int previousPriority = Int32.MinValue;
+						foreach(PackedGameState pgs in queue)
+						{
+							if (previousPriority <= pgs.Priority)
+								previousPriority = pgs.Priority;
+							else
+								throw new InvalidOperationException("Queue is not sorted.");
+						}
 
-						long removeCount = queueList.RemoveAll(gs => ShouldBePruned(gs, maxLevel));
+						long removeCount = queue.RemoveAll(gs => ShouldBePruned(gs, maxLevel));
 						
 						Statistics.LogEventAddition("Removed {0} queue entries.", removeCount);
 
-						index = removed.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
-						index2 = queueList.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
-						breakpointCount = queueList.Count(pgs => pgs.Breakpoint);
+						//index = removed.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
+						//index2 = queueList.FindIndex(pgs => pgs.GetHashCode() == 0x6A2E40E7);
+						breakpointCount = queue.Count(pgs => pgs.Breakpoint);
 
-						queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
-						foreach (PackedGameState pgs in queueList)
-							queue.Add(pgs);
+						//queue = new PriorityQueue<PackedGameState>((left, right) => (left.Priority - right.Priority));
+						//foreach (PackedGameState pgs in queueList)
+						//	queue.Add(pgs);
 
 						Statistics.LogProgress(breakpointCount);
 					}
@@ -272,7 +281,7 @@ namespace FreecellSolver
 			StringWriter writer = new StringWriter();
 			writer.WriteLine(initialState.Description + Environment.NewLine);
 
-			Set<PackedGameState> solutionSet = new Set<PackedGameState>(solutionStates);
+			Set<PackedGameState> solutionSet = new Set<PackedGameState>(solutionStates, PackedGameState.DictionaryComparer);
 			List<SolutionStep> solutionSteps = GenerateSolutionSteps(initialState, solutionSet);
 			solutionSteps.Reverse();
 
@@ -300,7 +309,7 @@ namespace FreecellSolver
 
 		public List<SolutionStep> GenerateSolutionSteps(GameState initialState, Set<PackedGameState> solutionSet)
 		{
-			Dictionary<PackedGameState, PackedGameState> knownGameStates = new Dictionary<PackedGameState, PackedGameState>();
+			Dictionary<PackedGameState, PackedGameState> knownGameStates = new Dictionary<PackedGameState, PackedGameState>(PackedGameState.DictionaryComparer);
 			PriorityQueue<SolutionStep> queue = new PriorityQueue<SolutionStep>((left, right) => (left.Priority - right.Priority));
 
 			initialState = (GameState)initialState.Clone();
