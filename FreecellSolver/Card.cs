@@ -103,8 +103,13 @@ namespace FreecellSolver
 		/// it is guaranteed to require a non-safe (i.e. non-free) move to get cardA removed from 
 		/// this Cascade.
 		/// </summary>
-		public static bool IsDefinitelyMore(int cardA, int cardB)
+		public static bool IsDefinitelyMore(int cardA, int cardB, List<int> foundations)
 		{
+			//If cardA can be placed directly on its foundation, its move is free.
+			int foundationCardForAsSuit = foundations[(cardA >> 4) - 1];
+			if (CanBuildFoundation(foundationCardForAsSuit, cardA) == true)
+				return false;
+
 			//Shortcut: If the difference in Rank is 2 or more, the suits don't matter.
 			int rankDifference = ((cardA & (int)Rank.Mask) - (cardB & (int)Rank.Mask));
 			if (rankDifference >= 2)

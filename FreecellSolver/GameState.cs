@@ -144,7 +144,7 @@ namespace FreecellSolver
 		/// </summary>
 		public int MinimumSolutionCost
 		{
-			get { return Cascades.Sum(c => c.MinimumSolutionCost); }
+			get { return Cascades.Sum(c => c.CalculateMinimumSolutionCost(_foundations)); }
 		}
 
 		public int HashCode

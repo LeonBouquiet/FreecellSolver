@@ -73,47 +73,44 @@ namespace FreecellSolver
 		/// Returns the lower bound of the cost (in Levels) that it will take to free all cards in 
 		/// this Cascade.
 		/// </summary>
-		public int MinimumSolutionCost
+		public int CalculateMinimumSolutionCost(List<int> foundations)
 		{
-			get
+			int minimumCost = 0;
+			if (_cards.Count >= 2)
 			{
-				int minimumCost = 0;
-				if (_cards.Count >= 2)
+				//Iterate over all cards from the topmost (i.e. movable) card to the bottom card.
+				int cardToFreeIndex = 0;
+				while(cardToFreeIndex < _cards.Count)
 				{
-					//Iterate over all cards from the topmost (i.e. movable) card to the bottom card.
-					int cardToFreeIndex = 0;
-					while(cardToFreeIndex < _cards.Count)
+					//Starting with the cardToFreeIndex, see how much consecutive cards we can find.
+					//This is 0 if the range is empty, 1 if the card to free doesn't form a cascade
+					//with the card below it, or more if there is a cascade.
+					int sequenceLength = GetSequenceLength(cardToFreeIndex);
+					if (sequenceLength > 0)
 					{
-						//Starting with the cardToFreeIndex, see how much consecutive cards we can find.
-						//This is 0 if the range is empty, 1 if the card to free doesn't form a cascade
-						//with the card below it, or more if there is a cascade.
-						int sequenceLength = GetSequenceLength(cardToFreeIndex);
-						if (sequenceLength > 0)
+						//In case of a cascade, we use only the bottom (i.e. the highest ranking) 
+						//card to work with. In case there is no cascade, this is basically the top card.
+						int cardToFree = _cards[cardToFreeIndex + sequenceLength - 1];
+
+						//Of the cards below cardToFree, see if we can find at least one card that 
+						//is smaller than cardToFree (according to the Safe moves). If so, this means
+						//that we won't be able to move cardToFree with a safe move, hence, this will
+						//cost at least one level.
+						for (int index = cardToFreeIndex + sequenceLength; index < _cards.Count; index++)
 						{
-							//In case of a cascade, we use only the bottom (i.e. the highest ranking) 
-							//card to work with. In case there is no cascade, this is basically the top card.
-							int cardToFree = _cards[cardToFreeIndex + sequenceLength - 1];
-
-							//Of the cards below cardToFree, see if we can find at least one card that 
-							//is smaller than cardToFree (according to the Safe moves). If so, this means
-							//that we won't be able to move cardToFree with a safe move, hence, this will
-							//cost at least one level.
-							for (int index = cardToFreeIndex + sequenceLength; index < _cards.Count; index++)
+							if (CardUtil.IsDefinitelyMore(cardToFree, _cards[index], foundations))
 							{
-								if (CardUtil.IsDefinitelyMore(cardToFree, _cards[index]))
-								{
-									minimumCost++;
-									break;
-								}
+								minimumCost++;
+								break;
 							}
-
-							cardToFreeIndex += sequenceLength;
 						}
+
+						cardToFreeIndex += sequenceLength;
 					}
 				}
-
-				return minimumCost;
 			}
+
+			return minimumCost;
 		}
 
 		/// <summary>
